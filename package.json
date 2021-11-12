@@ -1,0 +1,33 @@
+{
+  "name": "api-restful-nodejs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "tsnd --inspect --transpile-only --respawn --ignore-watch node_modules src/app.ts",
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PedroBatista-dev/api-restful-nodejs.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/PedroBatista-dev/api-restful-nodejs/issues"
+  },
+  "homepage": "https://github.com/PedroBatista-dev/api-restful-nodejs#readme",
+  "dependencies": {
+    "@hapi/hapi": "^20.2.1",
+    "pg": "^8.7.1",
+    "reflect-metadata": "^0.1.13",
+    "ts-node-dev": "^1.1.8",
+    "typeorm": "^0.2.40",
+    "typescript": "^4.4.4"
+  },
+  "devDependencies": {
+    "@types/node": "^16.11.7",
+    "jest": "^27.3.1"
+  }
+}

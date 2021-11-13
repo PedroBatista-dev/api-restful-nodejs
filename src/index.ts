@@ -1,21 +1,34 @@
-import "reflect-metadata";
-import { createConnection } from "typeorm";
-import { User } from "./entity/Client";
+import * as Hapi from "@hapi/hapi";
+import { Server, ServerRoute } from "@hapi/hapi";
+import "colors";
+import { get } from "node-emoji";
+import { initDb } from "./db";
+import { Connection } from "typeorm";
+import { clientController } from "./controllers";
 
-createConnection()
-  .then(async (connection) => {
-    console.log("Inserting a new user into the database...");
-    const user = new User();
-    user.firstName = "Timber";
-    user.lastName = "Saw";
-    user.age = 25;
-    await connection.manager.save(user);
-    console.log("Saved a new user with id: " + user.id);
+const init = async () => {
+  const server: Server = Hapi.server({
+    port: 3000,
+    host: "localhost",
+  });
 
-    console.log("Loading users from the database...");
-    const users = await connection.manager.find(User);
-    console.log("Loaded users: ", users);
+  const con: Connection = await initDb();
 
-    console.log("Here you can setup and run express/koa/any other framework.");
-  })
-  .catch((error) => console.log(error));
+  console.log(get("dvd"), "DB init -> Done!".green, get("dvd"));
+
+  server.route([...clientController(con)] as Array<ServerRoute>);
+
+  await server.start();
+  console.log(
+    get("rocket"),
+    `Server running on ${server.info.uri}`.green,
+    get("rocket")
+  );
+};
+
+process.on("unhandledRejection", (err) => {
+  console.log(err);
+  process.exit(1);
+});
+
+init();

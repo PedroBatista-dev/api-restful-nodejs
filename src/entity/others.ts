@@ -1,13 +1,13 @@
 import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
 
 @Entity()
-export class Other {
+export class Others {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ unique: true, nullable: false })
   cnh: number;
 
-  @Column()
+  @Column({ nullable: false })
   name: string;
 }

@@ -1,6 +1,7 @@
 import { Connection, Repository } from "typeorm";
 import { Clients } from "../../entity/clients";
 import { ResponseToolkit, ServerRoute, Request } from "hapi";
+import * as Boom from "@hapi/boom";
 
 export const clientController = (con: Connection): Array<ServerRoute> => {
   const clientRepo: Repository<Clients> = con.getRepository(Clients);
@@ -58,16 +59,28 @@ export const clientController = (con: Connection): Array<ServerRoute> => {
         err?: Error
       ) {
         const u: Clients = await clientRepo.findOne(id);
+        if (!u) {
+          throw Boom.notFound(`No client available for id »${id}«.`);
+        }
         return u;
       },
     },
     {
       method: "POST",
       path: "/clients",
-      handler: ({ payload }: Request, h: ResponseToolkit, err?: Error) => {
+      handler: async (
+        { payload }: Request,
+        h: ResponseToolkit,
+        err?: Error
+      ) => {
         const { cnh, name } = payload as Partial<Clients>;
-        const p: Partial<Clients> = new Clients(cnh, name);
-        return clientRepo.save<Partial<Clients>>(p);
+        if (cnh && name) {
+          const data: Clients = await clientRepo.findOne({ where: { cnh } });
+          if (data) throw Boom.notAcceptable(`Client already registered.`);
+          const p: Partial<Clients> = new Clients(cnh, name);
+          return clientRepo.save<Partial<Clients>>(p);
+        }
+        throw Boom.notAcceptable(`cnh or name are null.`);
       },
     },
     {
@@ -78,8 +91,13 @@ export const clientController = (con: Connection): Array<ServerRoute> => {
         h: ResponseToolkit,
         err?: Error
       ) => {
-        const u = await clientRepo.findOne(id);
-        Object.keys(payload).forEach((key) => (u[key] = payload[key]));
+        const u: Clients = await clientRepo.findOne(id);
+        if (!u) {
+          throw Boom.notFound(`No client available for id »${id}«.`);
+        }
+        Object.keys(payload).forEach((key) => {
+          if (payload[key]) u[key] = payload[key];
+        });
         clientRepo.update(id, u);
         return u;
       },
@@ -93,6 +111,9 @@ export const clientController = (con: Connection): Array<ServerRoute> => {
         err?: Error
       ) => {
         const u = await clientRepo.findOne(id);
+        if (!u) {
+          throw Boom.notFound(`No client available for id »${id}«.`);
+        }
         clientRepo.remove(u);
         return u;
       },

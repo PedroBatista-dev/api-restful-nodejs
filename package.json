@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/PedroBatista-dev/api-restful-nodejs#readme",
   "dependencies": {
+    "@hapi/boom": "^9.1.4",
     "@hapi/hapi": "^20.2.1",
     "colors": "^1.4.0",
     "node-emoji": "^1.11.0",

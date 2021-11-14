@@ -11,11 +11,16 @@ import { Others } from "./others";
 
 @Entity()
 export class Accidents {
+  constructor(car: string, client: Clients, others: Others[]) {
+    this.car = car;
+    this.client = client;
+    this.others = others;
+  }
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column({ nullable: false })
-  veiculo: string;
+  car: string;
 
   @ManyToOne(() => Clients, (client) => client.accidents)
   client: Clients;

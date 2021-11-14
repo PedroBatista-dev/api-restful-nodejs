@@ -1,16 +1,18 @@
 import { Connection, Repository } from "typeorm";
+import { Accidents } from "../../entity/accidents";
 import { Clients } from "../../entity/clients";
 import { Others } from "../../entity/others";
 import { ResponseToolkit, ServerRoute, Request } from "hapi";
 import * as Boom from "@hapi/boom";
 
-export const clientController = (con: Connection): Array<ServerRoute> => {
+export const accidentController = (con: Connection): Array<ServerRoute> => {
+  const accidentRepo: Repository<Accidents> = con.getRepository(Accidents);
   const clientRepo: Repository<Clients> = con.getRepository(Clients);
   const otherRepo: Repository<Others> = con.getRepository(Others);
   return [
     {
       method: "GET",
-      path: "/clients",
+      path: "/accidents",
       handler: async ({ query }: Request, h: ResponseToolkit, err?: Error) => {
         let { perPage, page, ...q } = query;
         let realPage: number;
@@ -36,17 +38,17 @@ export const clientController = (con: Connection): Array<ServerRoute> => {
             .map((key) => `${key}=${q[key]}`)
             .join("&");
         const qp: string = getQuery().length === 0 ? "" : `&${getQuery()}`;
-        const data = await clientRepo.find(findOptions);
+        const data = await accidentRepo.find(findOptions);
         return {
-          data: data.map((u: Clients) => {
+          data: data.map((u: Accidents) => {
             return u;
           }),
           perPage: realTake,
           page: +page || 1,
-          next: `http://localhost:3000/clients?perPage=${realTake}&page=${
+          next: `http://localhost:3000/accidents?perPage=${realTake}&page=${
             +page + 1
           }${qp}`,
-          prev: `http://localhost:3000/clients?perPage=${realTake}&page=${
+          prev: `http://localhost:3000/accidents?perPage=${realTake}&page=${
             +page - 1
           }${qp}`,
         };
@@ -54,13 +56,13 @@ export const clientController = (con: Connection): Array<ServerRoute> => {
     },
     {
       method: "GET",
-      path: "/clients/{id}",
+      path: "/accidents/{id}",
       async handler(
         { params: { id } }: Request,
         h: ResponseToolkit,
         err?: Error
       ) {
-        const u: Clients = await clientRepo.findOne(id);
+        const u: Accidents = await accidentRepo.findOne(id);
         if (!u) {
           throw Boom.notFound(`No client available for id »${id}«.`);
         }
@@ -69,57 +71,33 @@ export const clientController = (con: Connection): Array<ServerRoute> => {
     },
     {
       method: "POST",
-      path: "/clients",
-      handler: async (
-        { payload }: Request,
-        h: ResponseToolkit,
-        err?: Error
-      ) => {
-        const { cnh, name } = payload as Partial<Clients>;
-        if (cnh && name) {
-          //const other: Others = await otherRepo.findOne({
-          //   where: { cnh },
-          // });
-          const data: Clients = await clientRepo.findOne({ where: { cnh } });
-          if (data) throw Boom.notAcceptable(`Client already registered.`);
-          const p: Partial<Clients> = new Clients(cnh, name);
-          return clientRepo.save<Partial<Clients>>(p);
-        }
-        throw Boom.notAcceptable(`cnh or name are null.`);
-      },
-    },
-    {
-      method: "PATCH",
-      path: "/clients/{id}",
+      path: "/clients/{id}/accidents",
       handler: async (
         { params: { id }, payload }: Request,
         h: ResponseToolkit,
         err?: Error
       ) => {
-        const u: Clients = await clientRepo.findOne(id);
-        if (!u) throw Boom.notFound(`No client available for id »${id}«.`);
+        const client: Clients = await clientRepo.findOne(id);
+        if (!client) throw Boom.notFound(`No client available for id »${id}«.`);
 
-        Object.keys(payload).forEach((key) => {
-          if (payload[key]) u[key] = payload[key];
-        });
-        clientRepo.update(id, u);
-        return u;
-      },
-    },
-    {
-      method: "DELETE",
-      path: "/clients/{id}",
-      handler: async (
-        { params: { id } }: Request,
-        h: ResponseToolkit,
-        err?: Error
-      ) => {
-        const u = await clientRepo.findOne(id);
-        if (!u) {
-          throw Boom.notFound(`No client available for id »${id}«.`);
+        const { car, others } = payload as Partial<Accidents>;
+
+        for (const other of others) {
+          const uOther: Others = await otherRepo.findOne({
+            where: { cnh: other.cnh },
+          });
+
+          if (!uOther) {
+            const o: Partial<Others> = new Others(other.cnh, other.name);
+            const t: Others = await otherRepo.save<Partial<Others>>(o);
+            other.id = t.id;
+          } else {
+            other.id = uOther.id;
+          }
         }
-        clientRepo.remove(u);
-        return u;
+
+        const a: Accidents = new Accidents(car, client, others);
+        return accidentRepo.save<Accidents>(a);
       },
     },
   ];

@@ -4,7 +4,7 @@ import "colors";
 import { get } from "node-emoji";
 import { initDb } from "./db";
 import { Connection } from "typeorm";
-import { clientController } from "./controllers";
+import { clientController, accidentController } from "./controllers";
 
 const init = async () => {
   const server: Server = Hapi.server({
@@ -16,7 +16,10 @@ const init = async () => {
 
   console.log(get("dvd"), "DB init -> Done!".green, get("dvd"));
 
-  server.route([...clientController(con)] as Array<ServerRoute>);
+  server.route([
+    ...clientController(con),
+    ...accidentController(con),
+  ] as Array<ServerRoute>);
 
   await server.start();
   console.log(

@@ -8,7 +8,26 @@ const client = {
   name: "Test Jest",
 };
 
-describe("Test CRUD of Client", () => {
+const accident = {
+  id: undefined,
+  car: "celta",
+  others: [
+    {
+      cnh: "12345678920",
+      name: "Teste 1",
+    },
+    {
+      cnh: "12345678921",
+      name: "Teste 2",
+    },
+    {
+      cnh: "12345678922",
+      name: "Teste 3",
+    },
+  ],
+};
+
+describe("Test CRUD Client", () => {
   it("Post Client", (done) => {
     request(baseUrl)
       .post("/clients")
@@ -23,8 +42,21 @@ describe("Test CRUD of Client", () => {
       });
   });
 
+  it("Post Accident", (done) => {
+    request(baseUrl)
+      .post(`/clients/${client.id}/accidents`)
+      .send(accident)
+      .set("Accept", "application/json")
+      .expect("Content-Type", /json/)
+      .expect(200)
+      .end(function (err, res) {
+        if (err) return done(err);
+        accident.id = res.body.id;
+        return done();
+      });
+  });
+
   it("Update Client", (done) => {
-    console.log(client);
     client.name = "Test Update";
     request(baseUrl)
       .patch("/clients/" + client.id)

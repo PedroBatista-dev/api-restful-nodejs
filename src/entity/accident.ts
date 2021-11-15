@@ -22,10 +22,17 @@ export class Accident {
   @Column({ nullable: false })
   car: string;
 
-  @ManyToOne(() => Client, (client) => client.accidents)
+  @ManyToOne(() => Client, (client) => client.accidents, {
+    cascade: true,
+    onDelete: "CASCADE",
+  })
   client: Client;
 
-  @ManyToMany(() => Other)
+  @ManyToMany(() => Other, {
+    cascade: true,
+    onDelete: "CASCADE",
+    nullable: false,
+  })
   @JoinTable()
   others: Other[];
 }

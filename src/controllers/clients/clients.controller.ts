@@ -1,12 +1,14 @@
 import { Connection, Repository } from "typeorm";
 import { Client } from "../../entity/client";
 import { Other } from "../../entity/other";
+import { Accident } from "../../entity/accident";
 import { ResponseToolkit, ServerRoute, Request } from "hapi";
 import * as Boom from "@hapi/boom";
 import * as Joi from "@hapi/joi";
 
 export const clientController = (con: Connection): Array<ServerRoute> => {
   const clientRepo: Repository<Client> = con.getRepository(Client);
+  const accidentRepo: Repository<Accident> = con.getRepository(Accident);
   const otherRepo: Repository<Other> = con.getRepository(Other);
   return [
     {
@@ -88,11 +90,14 @@ export const clientController = (con: Connection): Array<ServerRoute> => {
         });
 
         if (dataOther) {
-          const p: Partial<Client> = new Client(dataOther.cnh, dataOther.name);
-          return clientRepo.save<Partial<Client>>(p);
+          const newClient: Partial<Client> = new Client(
+            dataOther.cnh,
+            dataOther.name
+          );
+          return clientRepo.save<Partial<Client>>(newClient);
         } else {
-          const p: Partial<Client> = new Client(cnh, name);
-          return clientRepo.save<Partial<Client>>(p);
+          const newClient: Partial<Client> = new Client(cnh, name);
+          return clientRepo.save<Partial<Client>>(newClient);
         }
       },
       options: {
@@ -103,6 +108,62 @@ export const clientController = (con: Connection): Array<ServerRoute> => {
               .length(11)
               .pattern(/^[0-9]+$/),
             name: Joi.string().required().max(250).min(3),
+          }) as any,
+          failAction(request: Request, h: ResponseToolkit, err: Error) {
+            throw err;
+          },
+          options: {
+            abortEarly: false,
+          },
+        },
+      },
+    },
+    {
+      method: "POST",
+      path: "/clients/{id}/accidents",
+      handler: async (
+        { params: { id }, payload }: Request,
+        h: ResponseToolkit,
+        err?: Error
+      ) => {
+        const dataClient: Client = await clientRepo.findOne(id);
+        if (!dataClient)
+          throw Boom.notFound(`No client available for id »${id}«.`);
+
+        const { car, others } = payload as Partial<Accident>;
+
+        for (const other of others) {
+          const dataOther: Other = await otherRepo.findOne({
+            where: { cnh: other.cnh },
+          });
+
+          if (!dataOther) {
+            const o: Partial<Other> = new Other(other.cnh, other.name);
+            const newOther: Other = await otherRepo.save<Partial<Other>>(o);
+            other.id = newOther.id;
+          } else {
+            other.id = dataOther.id;
+          }
+        }
+
+        const dataAccident: Accident = new Accident(car, dataClient, others);
+        return accidentRepo.save<Accident>(dataAccident);
+      },
+      options: {
+        validate: {
+          payload: Joi.object({
+            car: Joi.string().required().max(250).min(3),
+            others: Joi.array()
+              .items(
+                Joi.object({
+                  cnh: Joi.string()
+                    .required()
+                    .length(11)
+                    .pattern(/^[0-9]+$/),
+                  name: Joi.string().required().max(250).min(3),
+                })
+              )
+              .required(),
           }) as any,
           failAction(request: Request, h: ResponseToolkit, err: Error) {
             throw err;

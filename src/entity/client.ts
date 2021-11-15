@@ -1,9 +1,9 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from "typeorm";
-import { Accidents } from "./accidents";
+import { Accident } from "./accident";
 
 @Entity()
-export class Clients {
-  constructor(cnh: number, name: string) {
+export class Client {
+  constructor(cnh: string, name: string) {
     this.cnh = cnh;
     this.name = name;
   }
@@ -11,11 +11,11 @@ export class Clients {
   id: number;
 
   @Column({ unique: true, nullable: false })
-  cnh: number;
+  cnh: string;
 
   @Column({ nullable: false })
   name: string;
 
-  @OneToMany(() => Accidents, (accident) => accident.client)
-  accidents: Accidents[];
+  @OneToMany(() => Accident, (accident) => accident.client)
+  accidents: Accident[];
 }

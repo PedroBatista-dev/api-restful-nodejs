@@ -1,8 +1,8 @@
 import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
 
 @Entity()
-export class Others {
-  constructor(cnh: number, name: string) {
+export class Other {
+  constructor(cnh: string, name: string) {
     this.cnh = cnh;
     this.name = name;
   }
@@ -10,7 +10,7 @@ export class Others {
   id: number;
 
   @Column({ unique: true, nullable: false })
-  cnh: number;
+  cnh: string;
 
   @Column({ nullable: false })
   name: string;

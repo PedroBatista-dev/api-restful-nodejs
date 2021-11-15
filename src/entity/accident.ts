@@ -6,12 +6,12 @@ import {
   ManyToMany,
   JoinTable,
 } from "typeorm";
-import { Clients } from "./clients";
-import { Others } from "./others";
+import { Client } from "./client";
+import { Other } from "./other";
 
 @Entity()
-export class Accidents {
-  constructor(car: string, client: Clients, others: Others[]) {
+export class Accident {
+  constructor(car: string, client: Client, others: Other[]) {
     this.car = car;
     this.client = client;
     this.others = others;
@@ -22,10 +22,10 @@ export class Accidents {
   @Column({ nullable: false })
   car: string;
 
-  @ManyToOne(() => Clients, (client) => client.accidents)
-  client: Clients;
+  @ManyToOne(() => Client, (client) => client.accidents)
+  client: Client;
 
-  @ManyToMany(() => Others)
+  @ManyToMany(() => Other)
   @JoinTable()
-  others: Others[];
+  others: Other[];
 }

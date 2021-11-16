@@ -7,4 +7,4 @@ Também é necessário instalar o postgres: https://get.enterprisedb.com/postgre
 Após a instalação é necessário logar no postgres pelo terminal com o comando "psql -U postgres" e criar o banco com o comando "CREATE DATABASE u4crypto;".
 Caso o comando "psql -U postgres" não for válido, é necessário colocar o caminho da pasta bin do postgres("C:\Program Files\PostgreSQL\9.6\bin")
 dentro da variável de ambiente do sistema ("Path"). Depois do processo de instalação das dependências, é só utilizar o comando "npm run ts-node-dev" no projeto
-para iniciar a aplicação.
+para iniciar a aplicação. Para rodar os testes, basta utilizar o comando "npm test" com a aplicação rodando, pois os testes realizam requisições à api.
